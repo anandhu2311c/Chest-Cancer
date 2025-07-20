@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+  <title>Chest Cancer Classifier</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .main {
+      padding-top: 50px;
+    }
+    h3 {
+      color: #1b2d6b;
+      font-weight: 700;
+    }
+    .image-container {
+      max-width: 320px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .image-container img,
+    .image-container video {
+      width: 100%;
+      height: auto;
+      display: none;
+      border: 2px solid #1b2d6b;
+    }
+    #video {
+      display: block;
+    }
+    .btn-part {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .res-box {
+      min-height: 310px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background: #fff;
+      overflow: auto;
+    }
+    .resp-img {
+      max-width: 100%;
+      max-height: 300px;
+      display: block;
+      margin: auto;
+    }
+    #loading {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1050;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      display: none;
+    }
+    .loader {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #363e75;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+  </style>
+</head>
+<body>
+<div class="container main">
+  <h3 class="text-center mb-5">Chest Cancer Classification</h3>
+  <div class="row">
+    <!-- Upload Column -->
+    <div class="col-md-6 text-center">
+      <div class="image-container">
+        <video autoplay id="video" poster="https://img.freepik.com/free-vector/group-young-people-posing-photo_52683-18824.jpg"></video>
+        <img id="photo" src="" alt="Preview Image" />
+        <canvas style="display: none;" id="canvas"></canvas>
+      </div>
+      <div class="btn-part mt-4 px-5">
+        <button type="button" class="btn btn-primary w-100 me-2" id="uload">Upload Image</button>
+        <button type="button" class="btn btn-success w-100" id="send">Predict</button>
+      </div>
+      <input type="hidden" id="url" value="../predict" />
+      <input type="file" id="fileinput" style="display: none;" />
+    </div>
+
+    <!-- Results Column -->
+    <div class="col-md-6">
+      <h5 class="text-center mb-3">Prediction Results</h5>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="res-box text-center" id="imageResult"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="res-box" id="jsonResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loader -->
+<div id="loading">
+  <div class="loader"></div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script>
+  var base_data = "";
+
+  function sendRequest(base64Data) {
+    if (!base64Data) return;
+    const url = $("#url").val();
+    $("#loading").show();
+
+    $.ajax({
+      url,
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ image: base64Data }),
+      success: function (res) {
+        $("#imageResult, #jsonResult").empty();
+        try {
+          let imageData = res[1]?.image;
+          if (imageData) {
+            $("#imageResult").html(`<img class='resp-img' src='data:image/jpeg;base64,${imageData}' alt='Response Image' />`);
+          }
+        } catch (e) { console.error("Image render failed", e); }
+        $("#jsonResult").html(`<pre>${JSON.stringify(res[0], null, 2)}</pre>`);
+        $("#loading").hide();
+      },
+      error: function () {
+        $("#jsonResult").html("<p class='text-danger'>Prediction failed. Please try again.</p>");
+        $("#loading").hide();
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    $("#send").click(() => sendRequest(base_data));
+    $("#uload").click(() => $("#fileinput").trigger("click"));
+
+    $("#fileinput").change(function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const imgSrc = e.target.result;
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            base_data = canvas.toDataURL("image/jpeg", 1.0).split(",")[1];
+          };
+          img.src = imgSrc;
+          $("#photo").attr("src", imgSrc).show();
+          $("#video").hide();
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  });
+</script>
+</body>
+</html>

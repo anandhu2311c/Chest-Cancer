@@ -185,13 +185,6 @@ App now accessible on EC2 public IP.
 
 ---
 
-## 🙋‍♂️ How to Contribute
-
-1. Fork and clone this repo
-2. Run `dvc repro` to execute full pipeline
-3. Submit a pull request with improvements or fixes
-
----
 
 ## 📄 License
 
@@ -205,6 +198,5 @@ This project is licensed under the **MIT License**.
 - DVC & MLflow — MLOps Open Source Tools
 - Deployment — AWS EC2 + ECR + GitHub Actions
 
-````
 
 

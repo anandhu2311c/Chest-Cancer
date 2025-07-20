@@ -1,5 +1,5 @@
 
-````markdown
+
 # 🧠 End-to-End Chest Cancer Classification using MLflow, DVC & AWS CI/CD 🚀
 
 A complete MLOps-enabled Deep Learning project that classifies chest cancer images using a VGG16 model. The system integrates **data versioning**, **experiment tracking**, **model registry**, and **CI/CD deployment**.
